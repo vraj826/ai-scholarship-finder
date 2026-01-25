@@ -81,7 +81,7 @@ const WhatIfSimulator = ({ currentCgpa, currentIncome }) => {
                 <div key={idx} className="simulation-card">
                   <h5>{scholarship.scholarship_name}</h5>
                   <p className="amount">₹{scholarship.amount.toLocaleString()}</p>
-                  <p className="score">Match Score: {scholarship.match_score}</p>
+                  <p className="eligible">Eligible</p>
                   <ul className="mini-explanation">
                     {scholarship.explanation.slice(0, 3).map((reason, i) => (
                       <li key={i}>{reason}</li>
