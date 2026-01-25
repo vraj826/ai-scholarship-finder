@@ -1,42 +1,50 @@
 def calculate_score(profile, scholarship):
     """
-    Calculate match score based on scholarship weights.
+    Calculate a relevance score for a scholarship.
+    Higher score = better match
     """
-    score = 0
-    weights = scholarship["weights"]
-    
-    # CGPA scoring
-    if "cgpa" in weights:
-        if profile["cgpa"] >= scholarship["cgpa_cutoff"]:
-            # Extra points for exceeding cutoff
-            excess = profile["cgpa"] - scholarship["cgpa_cutoff"]
-            score += weights["cgpa"] + int(excess * 2)
-    
-    # Income scoring
-    if "income" in weights:
-        if profile["income"] <= scholarship["income_limit"]:
-            # More points for lower income
-            income_ratio = profile["income"] / scholarship["income_limit"]
-            score += int(weights["income"] * (1 - income_ratio))
-    
+
+    # Default weights (used if scholarship has none)
+    default_weights = {
+        "cgpa": 0.4,
+        "income": 0.3,
+        "category": 0.2,
+        "state": 0.1
+    }
+
+    # Use scholarship-specific weights if present
+    weights = scholarship.get("weights", default_weights)
+
+    score = 0.0
+
+    # =========================
+    # CGPA score
+    # =========================
+    min_cgpa = scholarship.get("min_cgpa")
+    if min_cgpa:
+        score += weights.get("cgpa", 0) * min(
+            profile.get("cgpa", 0) / min_cgpa, 1
+        )
+
+    # =========================
+    # Income score
+    # =========================
+    max_income = scholarship.get("max_income")
+    if max_income:
+        score += weights.get("income", 0) * min(
+            max_income / max(profile.get("income", 1), 1), 1
+        )
+
+    # =========================
     # Category match
-    if "category_match" in weights:
-        if profile["category"] in scholarship["category"]:
-            score += weights["category_match"]
-    
-    # Gender match
-    if "gender_match" in weights:
-        if scholarship["gender"] and profile["gender"] == scholarship["gender"]:
-            score += weights["gender_match"]
-    
+    # =========================
+    if scholarship.get("category") == profile.get("category"):
+        score += weights.get("category", 0)
+
+    # =========================
     # State match
-    if "state_match" in weights:
-        if scholarship["state"] and profile["state"] == scholarship["state"]:
-            score += weights["state_match"]
-    
-    # Minority match
-    if "minority_match" in weights:
-        if scholarship["minority"] and profile["minority"] in scholarship["minority"]:
-            score += weights["minority_match"]
-    
-    return score
+    # =========================
+    if scholarship.get("state") == profile.get("state"):
+        score += weights.get("state", 0)
+
+    return round(score, 2)
