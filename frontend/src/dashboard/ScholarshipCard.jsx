@@ -7,7 +7,7 @@ const ScholarshipCard = ({ scholarship }) => {
     <div className="scholarship-card eligible">
       <div className="card-header">
         <h3>{scholarship.scholarship_name}</h3>
-        <span className="match-score">Score: {scholarship.match_score}</span>
+        <span className="eligible">Eligilbe✅</span>
       </div>
       
       <p className="provider">{scholarship.provider}</p>
