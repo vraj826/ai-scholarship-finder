@@ -1,61 +1,79 @@
-def generate_explanation(profile, scholarship, is_eligible, reasons, score):
+def generate_explanation(profile, scholarship, reasons):
     """
-    Generate human-readable explanation for eligibility decision.
+    Generate a human-readable explanation of eligibility
     """
     explanation = []
-    
-    if is_eligible:
-        explanation.append(f"✅ You are eligible! Match Score: {score}")
-        
-        # CGPA
-        if reasons["cgpa"]:
-            explanation.append(f"✔ CGPA {profile['cgpa']} meets requirement (≥ {scholarship['cgpa_cutoff']})")
-        
-        # Income
-        if reasons["income"]:
-            explanation.append(f"✔ Income ₹{profile['income']:,} is within limit (≤ ₹{scholarship['income_limit']:,})")
-        
-        # Category
-        if reasons["category"]:
-            explanation.append(f"✔ Category '{profile['category']}' matches requirement")
-        
-        # Gender
-        if reasons["gender"] is True:
-            explanation.append(f"✔ Gender '{profile['gender']}' matches requirement")
-        
-        # State
-        if reasons["state"] is True:
-            explanation.append(f"✔ State '{profile['state']}' matches requirement")
-        
-        # Minority
-        if reasons["minority"] is True:
-            explanation.append(f"✔ Minority status '{profile['minority']}' matches requirement")
-    else:
-        explanation.append("❌ You are not eligible for this scholarship")
-        
-        # CGPA
-        if reasons["cgpa"] is False:
-            explanation.append(f"✘ CGPA {profile['cgpa']} is below requirement (need ≥ {scholarship['cgpa_cutoff']})")
-        
-        # Income
-        if reasons["income"] is False:
-            explanation.append(f"✘ Income ₹{profile['income']:,} exceeds limit (must be ≤ ₹{scholarship['income_limit']:,})")
-        
-        # Category
-        if reasons["category"] is False:
-            explanation.append(f"✘ Category '{profile['category']}' does not match (need one of: {', '.join(scholarship['category'])})")
-        
-        # Gender
-        if reasons["gender"] is False:
-            explanation.append(f"✘ This scholarship is only for '{scholarship['gender']}' students")
-        
-        # State
-        if reasons["state"] is False:
-            explanation.append(f"✘ This scholarship is only for '{scholarship['state']}' residents")
-        
-        # Minority
-        if reasons["minority"] is False:
-            minority_list = ', '.join(scholarship['minority']) if scholarship['minority'] else ''
-            explanation.append(f"✘ This scholarship requires minority status from: {minority_list}")
-    
+
+    # =========================
+    # CGPA
+    # =========================
+    min_cgpa = scholarship.get("min_cgpa")
+    if min_cgpa is not None:
+        if reasons.get("cgpa"):
+            explanation.append(
+                f"✔ CGPA {profile.get('cgpa')} meets requirement (≥ {min_cgpa})"
+            )
+        else:
+            explanation.append(
+                f"✘ CGPA {profile.get('cgpa')} is below requirement (≥ {min_cgpa})"
+            )
+
+    # =========================
+    # Income
+    # =========================
+    max_income = scholarship.get("max_income")
+    if max_income is not None:
+        if reasons.get("income"):
+            explanation.append(
+                f"✔ Income ₹{profile.get('income')} is within limit (≤ ₹{max_income})"
+            )
+        else:
+            explanation.append(
+                f"✘ Income ₹{profile.get('income')} exceeds limit (≤ ₹{max_income})"
+            )
+
+    # =========================
+    # Category
+    # =========================
+    if scholarship.get("category"):
+        if reasons.get("category"):
+            explanation.append(
+                f"✔ Category matches ({profile.get('category')})"
+            )
+        else:
+            explanation.append(
+                f"✘ Category does not match ({profile.get('category')})"
+            )
+
+    # =========================
+    # Gender (optional)
+    # =========================
+    if scholarship.get("gender"):
+        if reasons.get("gender"):
+            explanation.append("✔ Gender requirement satisfied")
+        else:
+            explanation.append("✘ Gender requirement not satisfied")
+
+    # =========================
+    # State (optional)
+    # =========================
+    if scholarship.get("state"):
+        if reasons.get("state"):
+            explanation.append(
+                f"✔ State matches ({profile.get('state')})"
+            )
+        else:
+            explanation.append(
+                f"✘ State does not match ({profile.get('state')})"
+            )
+
+    # =========================
+    # Minority (optional)
+    # =========================
+    if scholarship.get("minority"):
+        if reasons.get("minority"):
+            explanation.append("✔ Minority requirement satisfied")
+        else:
+            explanation.append("✘ Minority requirement not satisfied")
+
     return explanation
