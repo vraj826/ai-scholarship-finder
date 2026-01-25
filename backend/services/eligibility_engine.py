@@ -3,6 +3,7 @@ def check_eligibility(profile, scholarship):
     Check if a user profile is eligible for a scholarship.
     Returns (is_eligible, reasons_dict)
     """
+
     reasons = {
         "cgpa": None,
         "income": None,
@@ -11,69 +12,75 @@ def check_eligibility(profile, scholarship):
         "state": None,
         "minority": None
     }
-    
-    # Check CGPA
-    if profile["cgpa"] >= scholarship["cgpa_cutoff"]:
-        reasons["cgpa"] = True
+
+    # =========================
+    # CGPA Check
+    # =========================
+    min_cgpa = scholarship.get("min_cgpa")
+    if min_cgpa is not None:
+        reasons["cgpa"] = profile.get("cgpa", 0) >= min_cgpa
     else:
-        reasons["cgpa"] = False
-    
-    # Check Income
-    if profile["income"] <= scholarship["income_limit"]:
-        reasons["income"] = True
+        reasons["cgpa"] = True  # No CGPA restriction
+
+    # =========================
+    # Income Check
+    # =========================
+    max_income = scholarship.get("max_income")
+    if max_income is not None:
+        reasons["income"] = profile.get("income", 0) <= max_income
     else:
-        reasons["income"] = False
-    
-    # Check Category
-    if profile["category"] in scholarship["category"]:
-        reasons["category"] = True
+        reasons["income"] = True  # No income restriction
+
+    # =========================
+    # Category Check
+    # =========================
+    scholarship_category = scholarship.get("category")
+    if scholarship_category:
+        reasons["category"] = profile.get("category") == scholarship_category
     else:
-        reasons["category"] = False
-    
-    # Check Gender (if scholarship has gender requirement)
-    if scholarship["gender"] is not None:
-        if profile["gender"] == scholarship["gender"]:
-            reasons["gender"] = True
-        else:
-            reasons["gender"] = False
+        reasons["category"] = True  # Open to all categories
+
+    # =========================
+    # Gender Check (optional)
+    # =========================
+    scholarship_gender = scholarship.get("gender")
+    if scholarship_gender:
+        reasons["gender"] = profile.get("gender") == scholarship_gender
     else:
         reasons["gender"] = None  # Not applicable
-    
-    # Check State (if scholarship has state requirement)
-    if scholarship["state"] is not None:
-        if profile["state"] == scholarship["state"]:
-            reasons["state"] = True
-        else:
-            reasons["state"] = False
+
+    # =========================
+    # State Check (optional)
+    # =========================
+    scholarship_state = scholarship.get("state")
+    if scholarship_state:
+        reasons["state"] = profile.get("state") == scholarship_state
     else:
         reasons["state"] = None  # Not applicable
-    
-    # Check Minority (if scholarship has minority requirement)
-    if scholarship["minority"] is not None:
-        if profile["minority"] and profile["minority"] in scholarship["minority"]:
-            reasons["minority"] = True
-        else:
-            reasons["minority"] = False
+
+    # =========================
+    # Minority Check (optional)
+    # =========================
+    scholarship_minority = scholarship.get("minority")
+    if scholarship_minority:
+        reasons["minority"] = (
+            profile.get("minority") is not None
+            and profile.get("minority") in scholarship_minority
+        )
     else:
         reasons["minority"] = None  # Not applicable
-    
-    # Determine overall eligibility
-    # All mandatory checks must pass
+
+    # =========================
+    # Final Eligibility Decision
+    # =========================
     mandatory_checks = ["cgpa", "income", "category"]
+
     for check in mandatory_checks:
         if reasons[check] is False:
             return False, reasons
-    
-    # Gender check (if applicable)
-    if reasons["gender"] is False:
-        return False, reasons
-    
-    # State check (if applicable)
-    if reasons["state"] is False:
-        return False, reasons
-    
-    # Minority check (if applicable)
-    if reasons["minority"] is False:
-        return False, reasons
-    
+
+    for optional in ["gender", "state", "minority"]:
+        if reasons[optional] is False:
+            return False, reasons
+
     return True, reasons
