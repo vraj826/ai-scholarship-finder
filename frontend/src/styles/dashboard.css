@@ -528,4 +528,13 @@ grid-template-columns: 1fr;
 .profile-stats {
 grid-template-columns: 1fr 1fr;
 }
+.eligible-badge {
+  background: #4caf50;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
 }
