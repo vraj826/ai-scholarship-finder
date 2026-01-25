@@ -12,8 +12,7 @@ app = FastAPI(title="AI Scholarship Finder API")
 ALLOWED_ORIGINS = [
     "http://localhost:5173",          # Vite local
     "http://localhost:3000",          # React local (fallback)
-    "https://ai-scholarship-finder-z9we.onrender.com",  # Backend (safe)
-    # Add frontend deployed URL later (Vercel/Netlify)
+    "https://ai-scholarship-finder-1.vercel.app" # Vercel deployment
 ]
 
 app.add_middleware(
