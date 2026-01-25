@@ -5,8 +5,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
+MONGO_URI = os.getenv("MONGO_URI")  # ❗ NO localhost fallback
 DATABASE_NAME = os.getenv("DATABASE_NAME", "scholarship_finder")
+
+if not MONGO_URI:
+    raise RuntimeError("❌ MONGO_URI environment variable not set")
 
 client = None
 database = None
@@ -14,13 +17,14 @@ database = None
 async def connect_to_mongo():
     global client, database
     try:
-        client = AsyncIOMotorClient(MONGODB_URL)
+        client = AsyncIOMotorClient(MONGO_URI)
         database = client[DATABASE_NAME]
+
         # Test connection
-        await client.admin.command('ping')
-        print("✅ Connected to MongoDB")
-    except ServerSelectionTimeoutError:
-        print("❌ Failed to connect to MongoDB")
+        await client.admin.command("ping")
+        print("✅ Connected to MongoDB Atlas")
+    except ServerSelectionTimeoutError as e:
+        print("❌ Failed to connect to MongoDB", e)
         raise
 
 async def close_mongo_connection():
