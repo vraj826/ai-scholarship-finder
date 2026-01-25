@@ -18,14 +18,11 @@ async def get_eligible_scholarships(
     profiles_collection = db.profiles
     scholarships_collection = db.scholarships
 
-    # Get user profile
     profile = await profiles_collection.find_one({"email": current_user})
     if not profile:
         return []
 
-    # Get all scholarships
-    scholarships_cursor = scholarships_collection.find({})
-    scholarships = await scholarships_cursor.to_list(length=None)
+    scholarships = await scholarships_collection.find({}).to_list(length=None)
 
     results = []
 
@@ -35,24 +32,24 @@ async def get_eligible_scholarships(
         if is_eligible:
             score = calculate_score(profile, scholarship)
             explanation = generate_explanation(
-                profile, scholarship, is_eligible, reasons, score
+                profile,
+                scholarship,
+                reasons
             )
 
             results.append(
                 EligibilityResult(
-                    scholarship_name=scholarship["name"],
-                    provider=scholarship["provider"],
-                    amount=scholarship["amount"],
+                    scholarship_name=scholarship.get("name"),
+                    provider=scholarship.get("provider"),
+                    amount=scholarship.get("amount"),
                     is_eligible=True,
                     match_score=score,
                     explanation=explanation,
-                    description=scholarship["description"],
+                    description=scholarship.get("description"),
                 )
             )
 
-    # Sort by match score
     results.sort(key=lambda x: x.match_score, reverse=True)
-
     return results
 
 
@@ -64,14 +61,11 @@ async def get_missed_scholarships(
     profiles_collection = db.profiles
     scholarships_collection = db.scholarships
 
-    # Get user profile
     profile = await profiles_collection.find_one({"email": current_user})
     if not profile:
         return []
 
-    # Get all scholarships
-    scholarships_cursor = scholarships_collection.find({})
-    scholarships = await scholarships_cursor.to_list(length=None)
+    scholarships = await scholarships_collection.find({}).to_list(length=None)
 
     results = []
 
@@ -80,18 +74,20 @@ async def get_missed_scholarships(
 
         if not is_eligible:
             explanation = generate_explanation(
-                profile, scholarship, is_eligible, reasons, 0
+                profile,
+                scholarship,
+                reasons
             )
 
             results.append(
                 EligibilityResult(
-                    scholarship_name=scholarship["name"],
-                    provider=scholarship["provider"],
-                    amount=scholarship["amount"],
+                    scholarship_name=scholarship.get("name"),
+                    provider=scholarship.get("provider"),
+                    amount=scholarship.get("amount"),
                     is_eligible=False,
                     match_score=0,
                     explanation=explanation,
-                    description=scholarship["description"],
+                    description=scholarship.get("description"),
                 )
             )
 
@@ -107,47 +103,39 @@ async def what_if_simulation(
     profiles_collection = db.profiles
     scholarships_collection = db.scholarships
 
-    # Get user profile
     profile = await profiles_collection.find_one({"email": current_user})
     if not profile:
         return []
 
-    # Create temporary profile with what-if values
     temp_profile = profile.copy()
     temp_profile["cgpa"] = what_if.cgpa
     temp_profile["income"] = what_if.income
 
-    # Get all scholarships
-    scholarships_cursor = scholarships_collection.find({})
-    scholarships = await scholarships_cursor.to_list(length=None)
+    scholarships = await scholarships_collection.find({}).to_list(length=None)
 
     results = []
 
     for scholarship in scholarships:
         is_eligible, reasons = check_eligibility(temp_profile, scholarship)
-
-        if is_eligible:
-            score = calculate_score(temp_profile, scholarship)
-        else:
-            score = 0
+        score = calculate_score(temp_profile, scholarship) if is_eligible else 0
 
         explanation = generate_explanation(
-            temp_profile, scholarship, is_eligible, reasons, score
+            temp_profile,
+            scholarship,
+            reasons
         )
 
         results.append(
             EligibilityResult(
-                scholarship_name=scholarship["name"],
-                provider=scholarship["provider"],
-                amount=scholarship["amount"],
+                scholarship_name=scholarship.get("name"),
+                provider=scholarship.get("provider"),
+                amount=scholarship.get("amount"),
                 is_eligible=is_eligible,
                 match_score=score,
                 explanation=explanation,
-                description=scholarship["description"],
+                description=scholarship.get("description"),
             )
         )
 
-    # Sort by eligibility and score
     results.sort(key=lambda x: (x.is_eligible, x.match_score), reverse=True)
-
     return results
