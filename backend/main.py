@@ -5,16 +5,28 @@ from routes import auth, profile, scholarships
 
 app = FastAPI(title="AI Scholarship Finder API")
 
-# CORS
+# =========================
+# CORS Configuration
+# =========================
+# Add frontend URLs here (local + deployed)
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",          # Vite local
+    "http://localhost:3000",          # React local (fallback)
+    "https://ai-scholarship-finder-z9we.onrender.com",  # Backend (safe)
+    # Add frontend deployed URL later (Vercel/Netlify)
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Events
+# =========================
+# Application Events
+# =========================
 @app.on_event("startup")
 async def startup_event():
     await connect_to_mongo()
@@ -23,14 +35,19 @@ async def startup_event():
 async def shutdown_event():
     await close_mongo_connection()
 
-# Routes
+# =========================
+# API Routes
+# =========================
 app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(scholarships.router)
 
+# =========================
+# Health & Root
+# =========================
 @app.get("/")
 async def root():
-    return {"message": "AI Scholarship Finder API"}
+    return {"message": "AI Scholarship Finder API is running 🚀"}
 
 @app.get("/health")
 async def health():
