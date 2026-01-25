@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from database.db import connect_to_mongo, close_mongo_connection
 from routes import auth, profile, scholarships
 
@@ -8,11 +9,11 @@ app = FastAPI(title="AI Scholarship Finder API")
 # =========================
 # CORS Configuration
 # =========================
-# Add frontend URLs here (local + deployed)
+# Frontend origins (local + production)
 ALLOWED_ORIGINS = [
-    "http://localhost:5173",          # Vite local
-    "http://localhost:3000",          # React local (fallback)
-    "https://ai-scholarship-finder-1.vercel.app" # Vercel deployment
+    "http://localhost:5173",                 # Local Vite
+    "http://localhost:3000",                 # Optional fallback
+    "https://ai-scholarship-finder-1.vercel.app"  # Vercel frontend
 ]
 
 app.add_middleware(
@@ -24,7 +25,7 @@ app.add_middleware(
 )
 
 # =========================
-# Application Events
+# Application Lifecycle
 # =========================
 @app.on_event("startup")
 async def startup_event():
