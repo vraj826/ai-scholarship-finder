@@ -24,18 +24,19 @@ const Dashboard = () => {
   const fetchData = async () => {
     setLoading(true)
     setError('')
-    
+
     try {
       const [profileRes, eligibleRes, missedRes] = await Promise.all([
         api.get('/profile/'),
         api.get('/scholarships/eligible'),
         api.get('/scholarships/missed')
       ])
-      
-      setProfile(profileRes.data)
-      setEligibleScholarships(eligibleRes.data)
-      setMissedScholarships(missedRes.data)
+
+      setProfile(profileRes.data || null)
+      setEligibleScholarships(eligibleRes.data || [])
+      setMissedScholarships(missedRes.data || [])
     } catch (err) {
+      console.error(err)
       setError('Failed to load data')
     } finally {
       setLoading(false)
@@ -55,10 +56,16 @@ const Dashboard = () => {
       <nav className="dashboard-nav">
         <h1>🎓 AI Scholarship Finder</h1>
         <div className="nav-actions">
-          <button onClick={() => navigate('/edit-profile')} className="btn-secondary">
+          <button
+            onClick={() => navigate('/edit-profile')}
+            className="btn-secondary"
+          >
             Edit Profile
           </button>
-          <button onClick={logout} className="btn-secondary">
+          <button
+            onClick={logout}
+            className="btn-secondary"
+          >
             Logout
           </button>
         </div>
@@ -66,23 +73,35 @@ const Dashboard = () => {
 
       {profile && (
         <div className="profile-summary">
-          <h2>Welcome, {profile.name}!</h2>
+          <h2>Welcome, {profile.name || 'Student'}!</h2>
+
           <div className="profile-stats">
             <div className="stat">
               <span className="stat-label">CGPA:</span>
-              <span className="stat-value">{profile.cgpa}</span>
+              <span className="stat-value">
+                {profile.cgpa ?? 'N/A'}
+              </span>
             </div>
+
             <div className="stat">
               <span className="stat-label">Income:</span>
-              <span className="stat-value">₹{profile.income.toLocaleString()}</span>
+              <span className="stat-value">
+                ₹{Number(profile.income || 0).toLocaleString()}
+              </span>
             </div>
+
             <div className="stat">
               <span className="stat-label">Category:</span>
-              <span className="stat-value">{profile.category}</span>
+              <span className="stat-value">
+                {profile.category || 'N/A'}
+              </span>
             </div>
+
             <div className="stat">
               <span className="stat-label">State:</span>
-              <span className="stat-value">{profile.state}</span>
+              <span className="stat-value">
+                {profile.state || 'N/A'}
+              </span>
             </div>
           </div>
         </div>
@@ -95,6 +114,7 @@ const Dashboard = () => {
         >
           {showMissed ? 'Hide' : 'Show'} Missed Scholarships ({missedScholarships.length})
         </button>
+
         <button
           onClick={() => setShowSimulator(!showSimulator)}
           className={showSimulator ? 'btn-primary' : 'btn-secondary'}
@@ -104,17 +124,26 @@ const Dashboard = () => {
       </div>
 
       {showSimulator && profile && (
-        <WhatIfSimulator currentCgpa={profile.cgpa} currentIncome={profile.income} />
+        <WhatIfSimulator
+          currentCgpa={profile.cgpa ?? 0}
+          currentIncome={profile.income ?? 0}
+        />
       )}
 
       <div className="scholarships-section">
         <h2>✅ Eligible Scholarships ({eligibleScholarships.length})</h2>
+
         {eligibleScholarships.length === 0 ? (
-          <p className="no-results">No eligible scholarships found. Try adjusting your profile.</p>
+          <p className="no-results">
+            No eligible scholarships found. Try adjusting your profile.
+          </p>
         ) : (
           <div className="scholarships-grid">
-            {eligibleScholarships.map((scholarship, idx) => (
-              <ScholarshipCard key={idx} scholarship={scholarship} />
+            {eligibleScholarships.map((scholarship) => (
+              <ScholarshipCard
+                key={scholarship._id}
+                scholarship={scholarship}
+              />
             ))}
           </div>
         )}
