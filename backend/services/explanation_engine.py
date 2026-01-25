@@ -53,6 +53,6 @@ def generate_explanation(profile, scholarship, reasons, score):
     elif reasons.get("minority") is False:
         explanation.append("✗ Minority requirement not satisfied")
 
-    explanation.append(f"Match Score: {score}")
+    
 
     return explanation
