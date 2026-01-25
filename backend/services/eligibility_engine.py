@@ -1,72 +1,77 @@
+def normalize_str(value):
+    if value is None:
+        return None
+    return str(value).strip().lower()
+
+
+def normalize_list(values):
+    if not values:
+        return []
+    return [normalize_str(v) for v in values]
+
+
 def check_eligibility(profile, scholarship):
-    reasons = {
-        "cgpa": None,
-        "income": None,
-        "category": None,
-        "gender": None,
-        "state": None,
-        "minority": None
-    }
+    """
+    Strict eligibility check.
+    ALL mandatory conditions must pass.
+    Optional conditions are checked only if present in scholarship.
+    """
 
-    # ---------- NORMALIZE PROFILE ----------
-    profile_category = str(profile.get("category", "")).strip().upper()
-    profile_gender = str(profile.get("gender", "")).strip().lower()
-    profile_state = str(profile.get("state", "")).strip().lower()
-    profile_minority = str(profile.get("minority", "")).strip().lower()
+    reasons = {}
 
-    # ---------- NORMALIZE SCHOLARSHIP ----------
-    scholarship_categories = [
-        str(c).strip().upper()
-        for c in scholarship.get("category", [])
-    ]
+    # ---------------- PROFILE NORMALIZATION ----------------
+    profile_cgpa = float(profile.get("cgpa", 0))
+    profile_income = float(profile.get("income", 0))
+    profile_category = normalize_str(profile.get("category"))
+    profile_gender = normalize_str(profile.get("gender"))
+    profile_state = normalize_str(profile.get("state"))
+    profile_minority = normalize_str(profile.get("minority"))
 
-    scholarship_gender = scholarship.get("gender")
-    scholarship_state = scholarship.get("state")
-    scholarship_minority = scholarship.get("minority")
+    # ---------------- SCHOLARSHIP NORMALIZATION ----------------
+    cgpa_cutoff = float(scholarship.get("cgpa_cutoff", 0))
+    income_limit = float(scholarship.get("income_limit", 0))
+    allowed_categories = normalize_list(scholarship.get("category"))
+    required_gender = normalize_str(scholarship.get("gender"))
+    required_state = normalize_str(scholarship.get("state"))
+    allowed_minorities = normalize_list(scholarship.get("minority"))
 
-    # ---------- CGPA ----------
-    reasons["cgpa"] = profile.get("cgpa", 0) >= scholarship.get("cgpa_cutoff", 0)
+    # ---------------- CGPA CHECK ----------------
+    reasons["cgpa"] = profile_cgpa >= cgpa_cutoff
 
-    # ---------- INCOME ----------
-    reasons["income"] = profile.get("income", float("inf")) <= scholarship.get("income_limit", 0)
+    # ---------------- INCOME CHECK ----------------
+    reasons["income"] = profile_income <= income_limit
 
-    # ---------- CATEGORY (FIXED) ----------
-    reasons["category"] = profile_category in scholarship_categories
+    # ---------------- CATEGORY CHECK ----------------
+    reasons["category"] = profile_category in allowed_categories
 
-    # ---------- GENDER ----------
-    if scholarship_gender:
-        reasons["gender"] = profile_gender == str(scholarship_gender).strip().lower()
+    # ---------------- GENDER CHECK (OPTIONAL) ----------------
+    if required_gender:
+        reasons["gender"] = profile_gender == required_gender
     else:
-        reasons["gender"] = None
+        reasons["gender"] = None  # Not applicable
 
-    # ---------- STATE ----------
-    if scholarship_state:
-        reasons["state"] = profile_state == str(scholarship_state).strip().lower()
+    # ---------------- STATE CHECK (OPTIONAL) ----------------
+    if required_state:
+        reasons["state"] = profile_state == required_state
     else:
-        reasons["state"] = None
+        reasons["state"] = None  # Not applicable
 
-    # ---------- MINORITY ----------
-    if scholarship_minority:
-        reasons["minority"] = profile_minority in [
-            str(m).strip().lower() for m in scholarship_minority
-        ]
+    # ---------------- MINORITY CHECK (OPTIONAL) ----------------
+    if allowed_minorities:
+        reasons["minority"] = profile_minority in allowed_minorities
     else:
-        reasons["minority"] = None
+        reasons["minority"] = None  # Not applicable
 
-    # ---------- FINAL DECISION ----------
+    # ---------------- FINAL DECISION ----------------
     mandatory_checks = ["cgpa", "income", "category"]
 
     for check in mandatory_checks:
         if reasons[check] is False:
             return False, reasons
 
-    if reasons["gender"] is False:
-        return False, reasons
-
-    if reasons["state"] is False:
-        return False, reasons
-
-    if reasons["minority"] is False:
-        return False, reasons
+    # Optional checks must pass IF applicable
+    for optional in ["gender", "state", "minority"]:
+        if reasons[optional] is False:
+            return False, reasons
 
     return True, reasons
