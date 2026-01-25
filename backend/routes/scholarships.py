@@ -39,13 +39,13 @@ async def get_eligible_scholarships(
 
             results.append(
                 EligibilityResult(
-                    scholarship_name=scholarship.get("name"),
-                    provider=scholarship.get("provider"),
-                    amount=scholarship.get("amount"),
+                    scholarship_name=scholarship.get("name", "Unnamed Scholarship"),
+                    provider=scholarship.get("provider") or "N/A",
+                    amount=scholarship.get("amount", 0),
                     is_eligible=True,
                     match_score=score,
                     explanation=explanation,
-                    description=scholarship.get("description"),
+                    description=scholarship.get("description") or "",
                 )
             )
 
@@ -81,13 +81,13 @@ async def get_missed_scholarships(
 
             results.append(
                 EligibilityResult(
-                    scholarship_name=scholarship.get("name"),
-                    provider=scholarship.get("provider"),
-                    amount=scholarship.get("amount"),
+                    scholarship_name=scholarship.get("name", "Unnamed Scholarship"),
+                    provider=scholarship.get("provider") or "N/A",
+                    amount=scholarship.get("amount", 0),
                     is_eligible=False,
                     match_score=0,
                     explanation=explanation,
-                    description=scholarship.get("description"),
+                    description=scholarship.get("description") or "",
                 )
             )
 
@@ -127,13 +127,13 @@ async def what_if_simulation(
 
         results.append(
             EligibilityResult(
-                scholarship_name=scholarship.get("name"),
-                provider=scholarship.get("provider"),
-                amount=scholarship.get("amount"),
+                scholarship_name=scholarship.get("name", "Unnamed Scholarship"),
+                provider=scholarship.get("provider") or "N/A",
+                amount=scholarship.get("amount", 0),
                 is_eligible=is_eligible,
                 match_score=score,
                 explanation=explanation,
-                description=scholarship.get("description"),
+                description=scholarship.get("description") or "",
             )
         )
 
