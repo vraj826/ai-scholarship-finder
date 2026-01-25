@@ -31,10 +31,12 @@ async def get_eligible_scholarships(
 
         if is_eligible:
             score = calculate_score(profile, scholarship)
+
             explanation = generate_explanation(
                 profile,
                 scholarship,
-                reasons
+                reasons,
+                score
             )
 
             results.append(
@@ -76,7 +78,8 @@ async def get_missed_scholarships(
             explanation = generate_explanation(
                 profile,
                 scholarship,
-                reasons
+                reasons,
+                0
             )
 
             results.append(
@@ -122,7 +125,8 @@ async def what_if_simulation(
         explanation = generate_explanation(
             temp_profile,
             scholarship,
-            reasons
+            reasons,
+            score
         )
 
         results.append(
