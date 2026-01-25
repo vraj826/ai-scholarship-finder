@@ -14,14 +14,24 @@ const Dashboard = () => {
   const [showSimulator, setShowSimulator] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
   const { logout } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
     fetchData()
+    // eslint-disable-next-line
   }, [])
 
   const fetchData = async () => {
+    const token = localStorage.getItem('token')
+
+    // 🔐 Redirect if user is not authenticated
+    if (!token) {
+      navigate('/login')
+      return
+    }
+
     setLoading(true)
     setError('')
 
@@ -29,14 +39,22 @@ const Dashboard = () => {
       const [profileRes, eligibleRes, missedRes] = await Promise.all([
         api.get('/profile/'),
         api.get('/scholarships/eligible'),
-        api.get('/scholarships/missed')
+        api.get('/scholarships/missed'),
       ])
 
       setProfile(profileRes.data || null)
       setEligibleScholarships(eligibleRes.data || [])
       setMissedScholarships(missedRes.data || [])
     } catch (err) {
-      console.error(err)
+      console.error('Dashboard fetch error:', err)
+
+      // If token is invalid / expired
+      if (err.response?.status === 401) {
+        logout()
+        navigate('/login')
+        return
+      }
+
       setError('Failed to load data')
     } finally {
       setLoading(false)
@@ -55,6 +73,7 @@ const Dashboard = () => {
     <div className="dashboard">
       <nav className="dashboard-nav">
         <h1>🎓 AI Scholarship Finder</h1>
+
         <div className="nav-actions">
           <button
             onClick={() => navigate('/edit-profile')}
@@ -62,8 +81,12 @@ const Dashboard = () => {
           >
             Edit Profile
           </button>
+
           <button
-            onClick={logout}
+            onClick={() => {
+              logout()
+              navigate('/login')
+            }}
             className="btn-secondary"
           >
             Logout
@@ -112,7 +135,8 @@ const Dashboard = () => {
           onClick={() => setShowMissed(!showMissed)}
           className={showMissed ? 'btn-primary' : 'btn-secondary'}
         >
-          {showMissed ? 'Hide' : 'Show'} Missed Scholarships ({missedScholarships.length})
+          {showMissed ? 'Hide' : 'Show'} Missed Scholarships (
+          {missedScholarships.length})
         </button>
 
         <button
