@@ -9,6 +9,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
+        "https://task-master-pro-f04a35db.base44.app",
         "https://ai-scholarship-finder-1.vercel.app",
     ],
     allow_origin_regex=r"https://ai-scholarship-finder-1-.*\.vercel\.app",
